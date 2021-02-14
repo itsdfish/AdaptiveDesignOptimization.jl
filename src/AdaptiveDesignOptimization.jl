@@ -1,5 +1,4 @@
 module AdaptiveDesignOptimization
 
-# Write your package code here.
-
+    include("structs.jl")
 end
