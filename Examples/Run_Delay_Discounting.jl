@@ -1,20 +1,20 @@
+#######################################################################################
+#                                 Load Packages
+#######################################################################################
+# set the working directory to the directory in which this file is contained
 cd(@__DIR__)
+# load the package manager
+using Pkg
+# activate the project environment
+Pkg.activate("../")
+using Random
+include("Delay_Discounting.jl")
 include("../src/structs.jl")
-
-discount(t, κ) = 1/(1 + κ*t)
-
-function loglike(κ, τ, t_ss, t_ll, r_ss, r_ll, data)
-    u_ll = r_ll * discount(t_ll, κ)
-    u_ss = r_ss * discount(t_ss, κ)
-    p = 1/(1 + exp(-τ * (u_ll - u_ss)))
-    p = p == 1 ? 1 - eps() : p
-    p = p == 0 ? eps() : p
-    LL = data ? log(p) : log(1 - p)
-    # println(" choice ", data, " kappa ", κ, " tau ", τ, " t_ss ", t_ss,
-    #     " t_ll ", t_ll, " r_ss ", r_ss, " r_ll ", r_ll, " LL ", LL)
-    return LL
-end
-
+include("../src/functions.jl")
+#######################################################################################
+#                                  Define Model
+#######################################################################################
+Random.seed!(204)
 prior = [Uniform(-5, 5), Uniform(-5, 50)]
 
 model = Model(;prior, loglike)
@@ -22,8 +22,8 @@ model = Model(;prior, loglike)
 parm_grid = (κ = range(-5, 0, length=50) .|> x->10^x, 
    τ = range(0, 5, length=11)[2:end])
 
-# parm_grid = (κ = [.1,.2,.7], 
-#    τ = [.2,.5,.7])
+# parm_grid = (κ = [.1], 
+#    τ = [.2,.5])
 
 design_grid = (
     t_ss = [0.0], 
@@ -44,11 +44,56 @@ design_grid = (
 
 data_grid = (choice=[true, false],)
 
-
-# parm_grid = product(parm_grid...)
-# design_grid = product(design_grid...)
-# data_grid = product(data_grid...)
-
-
 optimizer = Optimizer(;design_grid, parm_grid, data_grid, model);
+#######################################################################################
+#                              Simulate Experiment
+#######################################################################################
+using DataFrames
+true_parms = (κ=.12, τ=1.5)
+n_trials = 100
+design = optimizer.best_design
+df = DataFrame(design=Symbol[], trial=Int[], mean_κ=Float64[], mean_τ=Float64[],
+    std_κ=Float64[], std_τ=Float64[])
+new_data = [:optimal, 0, mean_post(optimizer)..., std_post(optimizer)...]
+push!(df, new_data)
+
+for trial in 1:n_trials
+    data = simulate(true_parms..., design...)
+    design = update!(optimizer, data)
+    new_data = [:optimal, trial, mean_post(optimizer)..., std_post(optimizer)...]
+    push!(df, new_data)
+end
+#######################################################################################
+#                              Random Experiment
+#######################################################################################
+true_parms = (κ=.12, τ=1.5)
+n_trials = 100
+randomizer = Randomizer(;design_grid, parm_grid, data_grid, model);
+design = randomizer.best_design
+new_data = [:random, 0, mean_post(randomizer)..., std_post(randomizer)...]
+push!(df, new_data)
+
+for trial in 1:n_trials
+    data = simulate(true_parms..., design...)
+    design = update!(randomizer, data)
+    new_data = [:random, trial, mean_post(randomizer)..., std_post(randomizer)...]
+    push!(df, new_data)
+end
+#######################################################################################
+#                                 Plot Results
+#######################################################################################
+using StatsPlots
+@df df plot(:trial, :mean_κ, xlabel="trial", ylabel="mean κ", group=:design, grid=false)
+hline!([true_parms.κ], label="true")
+
+@df df plot(:trial, :mean_τ, xlabel="trial", ylabel="mean τ", group=:design, grid=false)
+hline!([true_parms.τ], label="true")
+
+@df df plot(:trial, :std_κ, xlabel="trial", ylabel="σ of κ", grid=false, group=:design, ylims=(0,.3))
+
+@df df plot(:trial, :std_τ, xlabel="trial", ylabel="σ of τ", grid=false, group=:design, ylims=(0,2))
+
+
+# subject route decision wind_direction point_A point_B p_destination_A p_destination_B p_aquire_A|destination 
+#p_aquire_B|destination fuel_requirement_A fuel_requirement_B p_chooseA
 
