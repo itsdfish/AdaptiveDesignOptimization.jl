@@ -7,10 +7,8 @@ cd(@__DIR__)
 using Pkg
 # activate the project environment
 Pkg.activate("../../")
-using Random
+using AdaptiveDesignOptimization, Random, UtilityModels, Distributions
 include("Delay_Discounting.jl")
-include("../../src/structs.jl")
-include("../../src/functions.jl")
 #######################################################################################
 #                                  Define Model
 #######################################################################################
@@ -19,13 +17,13 @@ prior = [Uniform(-5, 5), Uniform(-5, 50)]
 
 model = Model(;prior, loglike)
 
-parm_grid = (κ = range(-5, 0, length=50) .|> x->10^x, 
+parm_list = (κ = range(-5, 0, length=50) .|> x->10^x, 
    τ = range(0, 5, length=11)[2:end])
 
-# parm_grid = (κ = [.1], 
+# parm_list = (κ = [.1], 
 #    τ = [.2,.5])
 
-design_grid = (
+design_list = (
     t_ss = [0.0], 
     t_ll = [0.43, 0.714, 1, 2, 3,
         4.3, 6.44, 8.6, 10.8, 12.9,
@@ -35,16 +33,16 @@ design_grid = (
     r_ll = [800.0]
 )
 
-# design_grid = (
+# design_list = (
 #     t_ss = [0.0], 
 #     t_ll = [5.0, 10.0], 
 #     r_ss = [12.0, 20.0],
 #     r_ll = [80.0]
 # )
 
-data_grid = (choice=[true, false],)
+data_list = (choice=[true, false],)
 
-optimizer = Optimizer(;design_grid, parm_grid, data_grid, model);
+optimizer = Optimizer(;design_list, parm_list, data_list, model);
 #######################################################################################
 #                              Simulate Experiment
 #######################################################################################
@@ -68,7 +66,7 @@ end
 #######################################################################################
 true_parms = (κ=.12, τ=1.5)
 n_trials = 100
-randomizer = Randomizer(;design_grid, parm_grid, data_grid, model);
+randomizer = Randomizer(;design_list, parm_list, data_list, model);
 design = randomizer.best_design
 new_data = [:random, 0, mean_post(randomizer)..., std_post(randomizer)...]
 push!(df, new_data)
@@ -92,8 +90,4 @@ hline!([true_parms.τ], label="true")
 @df df plot(:trial, :std_κ, xlabel="trial", ylabel="σ of κ", grid=false, group=:design, ylims=(0,.3))
 
 @df df plot(:trial, :std_τ, xlabel="trial", ylabel="σ of τ", grid=false, group=:design, ylims=(0,2))
-
-
-# subject route decision wind_direction point_A point_B p_destination_A p_destination_B p_aquire_A|destination 
-#p_aquire_B|destination fuel_requirement_A fuel_requirement_B p_chooseA
 

@@ -1,4 +1,3 @@
-using Distributions, Parameters, StatsFuns
 import Base.Iterators: product
 mutable struct Model{F<:Function,P}
     prior::P

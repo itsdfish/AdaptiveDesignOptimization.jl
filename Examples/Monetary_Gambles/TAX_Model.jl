@@ -26,16 +26,6 @@ function expected_utilities(δ, β, γ, θ, pa, va, pb, vb)
     return eua,eub
 end
 
-
-
-# cognitive models to understand workload in applied Settings
-
-# aerial refueling 
-
-# human machine teaming
-
-# analytic likelihood functions for cognitive architectures
-
 function random_design(outcome_dist, n_vals, n_choices)
     design = Vector{Vector{Float64}}()
     for _ in 1:n_choices
@@ -46,6 +36,18 @@ function random_design(outcome_dist, n_vals, n_choices)
     end
     return design
 end
+
+function abs_zscore(x)
+    model = ExpectedUtility(1)
+    gambleA = Gamble(;p=x[1], v=x[2])
+    gambleB = Gamble(;p=x[3], v=x[4])
+    μa = mean(model, gambleA)
+    μb = mean(model, gambleB)
+    σa = var(model, gambleA)
+    σb = var(model, gambleB)
+    return abs((μa - μb)/sqrt(σa + σb))
+end
+
     
 # using Revise, Turing, Random, MCMCChains
 

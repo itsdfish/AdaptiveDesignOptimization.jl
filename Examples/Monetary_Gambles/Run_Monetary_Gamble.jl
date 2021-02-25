@@ -7,14 +7,12 @@ cd(@__DIR__)
 using Pkg
 # activate the project environment
 Pkg.activate("../../")
-using Random, UtilityModels
+using AdaptiveDesignOptimization, Random, UtilityModels, Distributions
 include("TAX_Model.jl")
-include("../../src/structs.jl")
-include("../../src/functions.jl")
 #######################################################################################
 #                                  Define Model
 #######################################################################################
-Random.seed!(2374)
+Random.seed!(5974)
 
 # model with default uniform prior
 model = Model(;loglike)
@@ -23,13 +21,15 @@ parm_list = (
     δ = range(-2, 2, length=10),
     β = range(.5, 1.5, length=10),
     γ = range(.5, 1.2, length=10),
-    θ = range(.5, 2, length=10)
+    θ = range(.5, 3, length=10)
 )
 
 dist = Normal(0,10)
 n_vals = 3
 n_choices = 2
-design_list = map(x->random_design(dist, n_vals, n_choices), 1:100)
+design_list = map(x->random_design(dist, n_vals, n_choices), 1:1000)
+filter!(x->abs_zscore(x) ≤ .4, design_list)
+design_list = design_list[1:100]
 
 data_list = (choice=[true, false],)
 
@@ -38,7 +38,7 @@ optimizer = Optimizer(;design_list, parm_list, data_list, model);
 #                              Simulate Experiment
 #######################################################################################
 using DataFrames
-true_parms = (δ=-1.0, β=1.0, γ=.7, θ=1.0)
+true_parms = (δ=-1.0, β=1.0, γ=.7, θ=1.5)
 n_trials = 100
 design = optimizer.best_design
 df = DataFrame(design=Symbol[], trial=Int[], mean_δ=Float64[], mean_β=Float64[],
@@ -89,4 +89,4 @@ hline!([true_parms.θ], label="true")
 
 @df df plot(:trial, :std_γ, xlabel="trial", ylabel="σ of γ", grid=false, group=:design, ylims=(0,.5))
 
-@df df plot(:trial, :std_θ, xlabel="trial", ylabel="σ of θ", grid=false, group=:design, ylims=(0,.5))
+@df df plot(:trial, :std_θ, xlabel="trial", ylabel="σ of θ", grid=false, group=:design, ylims=(0,.8))
