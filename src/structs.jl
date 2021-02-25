@@ -40,10 +40,10 @@ mutable struct Optimizer{M<:Model,T1,T2,T3,T4,T5,T6,T7}
     best_design::T7
 end
 
-function Optimizer(;model, design_grid, parm_grid, data_grid)
-    parm_grid = product(parm_grid...) |> collect
-    design_grid = product(design_grid...) |> collect
-    data_grid = product(data_grid...) |> collect
+function Optimizer(;model, design_list, parm_list, data_list)
+    design_grid = to_grid(design_list)
+    parm_grid = to_grid(parm_list)
+    data_grid = to_grid(data_list)
     log_like = loglikelihood(model, design_grid, parm_grid, data_grid)
     priors = prior_probs(model, parm_grid)
     post = priors[:]
@@ -71,10 +71,10 @@ mutable struct Randomizer{M<:Model,T1,T2,T3,T4,T5}
     best_design::T5
 end
 
-function Randomizer(;model, design_grid, parm_grid, data_grid)
-    parm_grid = product(parm_grid...) |> collect
-    design_grid = product(design_grid...) |> collect
-    data_grid = product(data_grid...) |> collect
+function Randomizer(;model, design_list, parm_list, data_list)
+    design_grid = to_grid(design_list)
+    parm_grid = to_grid(parm_list)
+    data_grid = to_grid(data_list)
     log_like = loglikelihood(model, design_grid, parm_grid, data_grid)
     priors = prior_probs(model, parm_grid)
     post = priors[:]

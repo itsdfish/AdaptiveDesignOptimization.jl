@@ -17,10 +17,10 @@ end
 
 function loglikelihood(loglike, design_grid, parm_grid, data_grid)
     LLs = zeros(length(parm_grid), length(design_grid), length(data_grid))
-    for (d, datum) in enumerate(data_grid)
+    for (d, data) in enumerate(data_grid)
         for (k,design) in enumerate(design_grid)
-            for (p,parm) in enumerate(parm_grid)
-                LLs[p,k,d] = loglike(parm..., design..., datum...) 
+            for (p,parms) in enumerate(parm_grid)
+                LLs[p,k,d] = loglike(parms..., design..., data...) 
             end
         end
     end
@@ -120,6 +120,12 @@ function update!(randomizer::Randomizer, data)
     best_design = get_best_design!(randomizer)
     return best_design
 end
+
+function to_grid(vals::NamedTuple)
+    return product(vals...) |> collect
+end
+
+to_grid(vals) = vals
 
 function find_index(grid, val)
     i = 0

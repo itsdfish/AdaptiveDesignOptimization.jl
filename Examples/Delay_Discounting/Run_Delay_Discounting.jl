@@ -6,11 +6,11 @@ cd(@__DIR__)
 # load the package manager
 using Pkg
 # activate the project environment
-Pkg.activate("../")
+Pkg.activate("../../")
 using Random
 include("Delay_Discounting.jl")
-include("../src/structs.jl")
-include("../src/functions.jl")
+include("../../src/structs.jl")
+include("../../src/functions.jl")
 #######################################################################################
 #                                  Define Model
 #######################################################################################
