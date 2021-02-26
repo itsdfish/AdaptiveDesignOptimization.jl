@@ -64,8 +64,6 @@ end
 #######################################################################################
 #                              Random Experiment
 #######################################################################################
-true_parms = (κ=.12, τ=1.5)
-n_trials = 100
 randomizer = Randomizer(;design_list, parm_list, data_list, model);
 design = randomizer.best_design
 new_data = [:random, 0, mean_post(randomizer)..., std_post(randomizer)...]

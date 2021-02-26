@@ -74,21 +74,26 @@ function mutual_information!(optimizer)
     return nothing
 end
 
-function get_best_design!(optimizer)
-    @unpack mutual_info,design_grid = optimizer
-    best_design = get_best_design(mutual_info, design_grid)
+function get_best_design(optimizer)
+    @unpack best_design,design_names = optimizer
+    return NamedTuple{design_names}(best_design)
+end
+
+function find_best_design!(optimizer)
+    @unpack design_names,mutual_info,design_grid = optimizer
+    best_design = find_best_design(mutual_info, design_grid, design_names)
     optimizer.best_design = best_design
     return best_design
 end
 
-function get_best_design(mutual_info, design_grid)
+function find_best_design(mutual_info, design_grid, design_names)
     _,best = findmax(mutual_info)
     best_design = design_grid[best]
     return best_design
 end
 
-function get_best_design!(randomizer::Randomizer)
-    @unpack design_grid = randomizer
+function find_best_design!(randomizer::Randomizer)
+    @unpack design_grid,design_names = randomizer
     best_design = rand(design_grid)
     randomizer.best_design = best_design
     return best_design
@@ -111,21 +116,28 @@ function update!(optimizer, data)
     marginal_entropy!(optimizer)
     conditional_entropy!(optimizer)
     mutual_information!(optimizer)
-    best_design = get_best_design!(optimizer)
+    best_design = find_best_design!(optimizer)
     return best_design
 end
 
 function update!(randomizer::Randomizer, data)
     update_posterior!(randomizer, data)
-    best_design = get_best_design!(randomizer)
+    best_design = find_best_design!(randomizer)
     return best_design
 end
 
 function to_grid(vals::NamedTuple)
-    return product(vals...) |> collect
+    k = keys(vals)
+    v = product(vals...) |> collect
+    return k,v
 end
 
-to_grid(vals) = vals
+function to_grid(vals)
+    k = [Symbol(string("v",i)) for i in 1:length(vals[1])]
+    return (k...,),vals
+end
+
+to_grid(vals::Tuple) = vals
 
 function find_index(grid, val)
     i = 0

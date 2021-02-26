@@ -17,7 +17,7 @@ using SafeTestsets
 
     data_list = (choice=[true, false],)
 
-    randomizer = Randomizer(;design_list, parm_list, data_list, model);
+    randomizer = Randomizer(;design_list, parm_list, data_list, model)
 
     @test mean_post(randomizer)[1] ≈ mean(Beta(α,β)) atol = 5e-3
     @test std_post(randomizer)[1] ≈ std(Beta(α,β)) atol = 5e-3

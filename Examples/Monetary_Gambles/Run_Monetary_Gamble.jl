@@ -12,7 +12,7 @@ include("TAX_Model.jl")
 #######################################################################################
 #                                  Define Model
 #######################################################################################
-Random.seed!(5974)
+Random.seed!(25974)
 
 # model with default uniform prior
 model = Model(;loglike)
@@ -27,13 +27,14 @@ parm_list = (
 dist = Normal(0,10)
 n_vals = 3
 n_choices = 2
-design_list = map(x->random_design(dist, n_vals, n_choices), 1:1000)
-filter!(x->abs_zscore(x) ≤ .4, design_list)
-design_list = design_list[1:100]
+design_vals = map(x->random_design(dist, n_vals, n_choices), 1:1000)
+filter!(x->abs_zscore(x) ≤ .4, design_vals)
+design_names = (:p1,:v1,:p2,:v2)
+design_list = (design_names,design_vals[1:100])
 
 data_list = (choice=[true, false],)
 
-optimizer = Optimizer(;design_list, parm_list, data_list, model);
+optimizer = Optimizer(;design_list, parm_list, data_list, model)
 #######################################################################################
 #                              Simulate Experiment
 #######################################################################################
