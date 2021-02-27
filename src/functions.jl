@@ -92,10 +92,10 @@ function find_best_design(mutual_info, design_grid, design_names)
     return best_design
 end
 
-function find_best_design!(randomizer::Randomizer)
-    @unpack design_grid,design_names = randomizer
+function find_best_design!(optimizer::Optimizer{A}) where {A<:Rand}
+    @unpack design_grid,design_names = optimizer
     best_design = rand(design_grid)
-    randomizer.best_design = best_design
+    optimizer.best_design = best_design
     return best_design
 end
 
@@ -120,9 +120,9 @@ function update!(optimizer, data)
     return best_design
 end
 
-function update!(randomizer::Randomizer, data)
-    update_posterior!(randomizer, data)
-    best_design = find_best_design!(randomizer)
+function update!(optimizer::Optimizer{A}, data) where {A<:Rand}
+    update_posterior!(optimizer, data)
+    best_design = find_best_design!(optimizer)
     return best_design
 end
 
@@ -170,3 +170,9 @@ function std_post(optimizer)
     post = exp.(log_post)
     return std_post(post, parm_grid)
 end
+
+function create_state(T, dims, args...; kwargs...)
+    state = fill(T(args...; kwargs...), dims)
+    state .= deepcopy.(state)
+end
+

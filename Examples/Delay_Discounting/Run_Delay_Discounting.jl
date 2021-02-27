@@ -7,12 +7,12 @@ cd(@__DIR__)
 using Pkg
 # activate the project environment
 Pkg.activate("../../")
-using AdaptiveDesignOptimization, Random, UtilityModels, Distributions
+using Revise, AdaptiveDesignOptimization, Random, UtilityModels, Distributions
 include("Delay_Discounting.jl")
 #######################################################################################
 #                                  Define Model
 #######################################################################################
-Random.seed!(204)
+Random.seed!(1204)
 prior = [Uniform(-5, 5), Uniform(-5, 50)]
 
 model = Model(;prior, loglike)
@@ -41,14 +41,13 @@ design_list = (
 # )
 
 data_list = (choice=[true, false],)
-
-optimizer = Optimizer(;design_list, parm_list, data_list, model);
 #######################################################################################
 #                              Simulate Experiment
 #######################################################################################
 using DataFrames
 true_parms = (κ=.12, τ=1.5)
 n_trials = 100
+optimizer = Optimizer(;design_list, parm_list, data_list, model);
 design = optimizer.best_design
 df = DataFrame(design=Symbol[], trial=Int[], mean_κ=Float64[], mean_τ=Float64[],
     std_κ=Float64[], std_τ=Float64[])
@@ -64,7 +63,7 @@ end
 #######################################################################################
 #                              Random Experiment
 #######################################################################################
-randomizer = Randomizer(;design_list, parm_list, data_list, model);
+randomizer = Optimizer(;design_list, parm_list, data_list, model, approach=Randomize);
 design = randomizer.best_design
 new_data = [:random, 0, mean_post(randomizer)..., std_post(randomizer)...]
 push!(df, new_data)
@@ -88,4 +87,3 @@ hline!([true_parms.τ], label="true")
 @df df plot(:trial, :std_κ, xlabel="trial", ylabel="σ of κ", grid=false, group=:design, ylims=(0,.3))
 
 @df df plot(:trial, :std_τ, xlabel="trial", ylabel="σ of τ", grid=false, group=:design, ylims=(0,2))
-
