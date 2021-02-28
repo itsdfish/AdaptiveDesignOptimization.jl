@@ -11,8 +11,12 @@ function prior_probs(prior::Nothing, parm_grid)
     return fill(1/length(parm_grid), size(parm_grid))
 end
 
-function loglikelihood(model::Model, design_grid, parm_grid, data_grid)
+function loglikelihood(model::Model, design_grid, parm_grid, data_grid, model_type, model_state)
     return loglikelihood(model.loglike, design_grid, parm_grid, data_grid)
+end
+
+function loglikelihood(model::Model, design_grid, parm_grid, data_grid, model_type::Dyn, model_state)
+    return loglikelihood(model.loglike, design_grid, parm_grid, data_grid, model_state)
 end
 
 function loglikelihood(loglike, design_grid, parm_grid, data_grid)
@@ -25,6 +29,38 @@ function loglikelihood(loglike, design_grid, parm_grid, data_grid)
         end
     end
     return LLs
+end
+
+function loglikelihood(loglike, design_grid, parm_grid, data_grid, model_state)
+    LLs = zeros(length(parm_grid), length(design_grid), length(data_grid))
+    i = 0
+    for (d, data) in enumerate(data_grid)
+        for (k,design) in enumerate(design_grid)
+            for (p,parms) in enumerate(parm_grid)
+                i += 1
+                LLs[p,k,d] = loglike(parms..., design..., data..., model_state[i]) 
+            end
+        end
+    end
+    return LLs
+end
+
+function loglikelihood!(optimizer) 
+    @unpack model, log_like, design_grid, parm_grid, data_grid, model_state = optimizer
+    return loglikelihood!(model.loglike, log_like, design_grid, parm_grid, data_grid, model_state)
+end
+
+function loglikelihood!(loglike, log_like, design_grid, parm_grid, data_grid, model_state)
+    i = 0
+    for (d, data) in enumerate(data_grid)
+        for (k,design) in enumerate(design_grid)
+            for (p,parms) in enumerate(parm_grid)
+                i += 1
+                log_like[p,k,d] = loglike(parms..., design..., data..., model_state[i]) 
+            end
+        end
+    end
+    return nothing
 end
 
 function marginal_log_like!(optimizer)
@@ -120,10 +156,34 @@ function update!(optimizer, data)
     return best_design
 end
 
+function update!(optimizer::Optimizer{A,MT}, data, args...; kwargs...) where {A,MT<:Dyn}
+    update_posterior!(optimizer, data)
+    update_states!(optimizer, data, args...; kwargs...)
+    loglikelihood!(optimizer)
+    marginal_log_like!(optimizer)
+    marginal_entropy!(optimizer)
+    conditional_entropy!(optimizer)
+    mutual_information!(optimizer)
+    best_design = find_best_design!(optimizer)
+    return best_design
+end
+
 function update!(optimizer::Optimizer{A}, data) where {A<:Rand}
     update_posterior!(optimizer, data)
     best_design = find_best_design!(optimizer)
     return best_design
+end
+
+function update_states!(optimizer, obs_data, args...; kwargs...)
+    @unpack model_state, data_grid, design_grid, parm_grid, update_state! = optimizer
+    for (d, data) in enumerate(data_grid)
+        for (k,design) in enumerate(design_grid)
+            for (p,parms) in enumerate(parm_grid)
+                update_state!(model_state, parms, design, data, obs_data, args...; kwargs...)
+            end
+        end
+    end
+    return nothing
 end
 
 function to_grid(vals::NamedTuple)
@@ -171,8 +231,13 @@ function std_post(optimizer)
     return std_post(post, parm_grid)
 end
 
-function create_state(T, dims, args...; kwargs...)
+function create_state(model_type::Dyn, T, dims, args...; kwargs...)
     state = fill(T(args...; kwargs...), dims)
-    state .= deepcopy.(state)
+    return state .= deepcopy.(state)
 end
+
+function create_state(model_type::Stat, T, dims, args...; kwargs...)
+    return nothing
+end
+
 

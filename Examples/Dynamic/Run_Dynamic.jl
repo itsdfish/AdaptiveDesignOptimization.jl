@@ -63,7 +63,7 @@ end
 #######################################################################################
 #                              Random Experiment
 #######################################################################################
-randomizer = Optimizer(;design_list, parm_list, data_list, model, design_type=Randomize);
+randomizer = Optimizer(;design_list, parm_list, data_list, model, approach=Randomize);
 design = randomizer.best_design
 new_data = [:random, 0, mean_post(randomizer)..., std_post(randomizer)...]
 push!(df, new_data)

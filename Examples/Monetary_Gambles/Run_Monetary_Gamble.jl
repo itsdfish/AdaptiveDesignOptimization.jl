@@ -33,14 +33,13 @@ design_names = (:p1,:v1,:p2,:v2)
 design_list = (design_names,design_vals[1:100])
 
 data_list = (choice=[true, false],)
-
-optimizer = Optimizer(;design_list, parm_list, data_list, model)
 #######################################################################################
 #                              Simulate Experiment
 #######################################################################################
 using DataFrames
 true_parms = (δ=-1.0, β=1.0, γ=.7, θ=1.5)
 n_trials = 100
+optimizer = Optimizer(;design_list, parm_list, data_list, model)
 design = optimizer.best_design
 df = DataFrame(design=Symbol[], trial=Int[], mean_δ=Float64[], mean_β=Float64[],
     mean_γ=Float64[], mean_θ=Float64[], std_δ=Float64[], std_β=Float64[],
@@ -57,7 +56,7 @@ end
 #######################################################################################
 #                              Random Experiment
 #######################################################################################
-randomizer = Randomizer(;design_list, parm_list, data_list, model);
+randomizer = Optimizer(;design_list, parm_list, data_list, model, design_type=Randomize);
 design = randomizer.best_design
 new_data = [:random, 0, mean_post(randomizer)..., std_post(randomizer)...]
 push!(df, new_data)
