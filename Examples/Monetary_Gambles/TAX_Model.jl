@@ -1,10 +1,26 @@
+"""
+*loglike*
+
+Computes the log likelihood for the TAX model.
+* `δ`: transfer of attention parameter 
+* `γ`: probability weighting parameter
+* `β`: utility curvature parameter 
+* `θ`: decision consistency parameter 
+* `pa`: outcome probabilities for gamble a
+* `va`: outcome values for gamble a
+* `pb`: outcome probabilities for gamble b
+* `vb`: outcome values for gamble b
+
+Function Signature 
+```julia
+loglike(δ, β, γ, θ, pa, va, pb, vb, data)
+```
+"""
 function loglike(δ, β, γ, θ, pa, va, pb, vb, data)
     eua,eub = expected_utilities(δ, β, γ, θ, pa, va, pb, vb)
     p = choice_prob(eua, eub, θ)
-    p = p == 1 ? 1 - eps() : p
-    p = p == 0 ? eps() : p
-    LL = data ? log(p) : log(1 - p)
-    return LL
+    p = max(p, eps())
+    return logpdf(Bernoulli(p), data)
 end
 
 function choice_prob(eua, eub, θ)

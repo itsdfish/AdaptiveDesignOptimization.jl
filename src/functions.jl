@@ -56,7 +56,8 @@ function loglikelihood!(loglike, log_like, design_grid, parm_grid, data_grid, mo
         for (k,design) in enumerate(design_grid)
             for (p,parms) in enumerate(parm_grid)
                 i += 1
-                log_like[p,k,d] = loglike(parms..., design..., data..., model_state[i]) 
+                state = deepcopy(model_state[i])
+                log_like[p,k,d] = loglike(parms..., design..., data..., state) 
             end
         end
     end
@@ -168,6 +169,14 @@ function update!(optimizer::Optimizer{A,MT}, data, args...; kwargs...) where {A,
     return best_design
 end
 
+function update!(optimizer::Optimizer{A,MT}, data, args...; kwargs...) where {A<:Rand,MT<:Dyn}
+    update_posterior!(optimizer, data)
+    update_states!(optimizer, data, args...; kwargs...)
+    loglikelihood!(optimizer)
+    best_design = find_best_design!(optimizer)
+    return best_design
+end
+
 function update!(optimizer::Optimizer{A}, data) where {A<:Rand}
     update_posterior!(optimizer, data)
     best_design = find_best_design!(optimizer)
@@ -176,10 +185,12 @@ end
 
 function update_states!(optimizer, obs_data, args...; kwargs...)
     @unpack model_state, data_grid, design_grid, parm_grid, update_state! = optimizer
-    for (d, data) in enumerate(data_grid)
-        for (k,design) in enumerate(design_grid)
-            for (p,parms) in enumerate(parm_grid)
-                update_state!(model_state, parms, design, data, obs_data, args...; kwargs...)
+    i = 0
+    for data in data_grid
+        for design in design_grid
+            for parms in parm_grid
+                i += 1
+                update_state!(model_state[i], parms, design, data, obs_data, args...; kwargs...)
             end
         end
     end
@@ -239,5 +250,3 @@ end
 function create_state(model_type::Stat, T, dims, args...; kwargs...)
     return nothing
 end
-
-

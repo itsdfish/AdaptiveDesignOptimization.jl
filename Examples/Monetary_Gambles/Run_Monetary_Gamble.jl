@@ -9,10 +9,10 @@ using Pkg
 Pkg.activate("../../")
 using AdaptiveDesignOptimization, Random, UtilityModels, Distributions
 include("TAX_Model.jl")
-#######################################################################################
-#                                  Define Model
-#######################################################################################
 Random.seed!(25974)
+#######################################################################################
+#                                  Define Parameters
+#######################################################################################
 
 # model with default uniform prior
 model = Model(;loglike)
@@ -34,7 +34,7 @@ design_list = (design_names,design_vals[1:100])
 
 data_list = (choice=[true, false],)
 #######################################################################################
-#                              Simulate Experiment
+#                              Optimize Experiment
 #######################################################################################
 using DataFrames
 true_parms = (δ=-1.0, β=1.0, γ=.7, θ=1.5)
