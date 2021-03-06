@@ -61,7 +61,7 @@ function Model(args...; prior=nothing, loglike, kwargs...)
 end
 
 """
-*Optimizer*
+    Optimizer(;task, model, grid_design, grid_parms, grid_response)
 
 `Optimizer` constructs a model object for adaptive design optimization
 
@@ -75,13 +75,7 @@ end
 - `log_post`: a one dimensional array of log posterior probabilities for parameters
 - `entropy`: a two dimensional array of entropy values for parameter and design combinations
 - 
-
-Constructor
-
-````julia
-Optimizer(;task, model, grid_design, grid_parms, grid_response)
-````
-# """
+"""
 mutable struct Optimizer{A,MT,M<:Model,T1,T2,T3,T4,T5,T6,T7,T8,T9,
     T10,T11}
     design_type::A
