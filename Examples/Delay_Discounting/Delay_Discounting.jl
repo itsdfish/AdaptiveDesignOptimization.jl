@@ -8,8 +8,8 @@ end
 
 function loglike(κ, τ, t_ss, t_ll, r_ss, r_ll, data)
     p = prob(κ, τ, t_ss, t_ll, r_ss, r_ll)
-    p = p == 1 ? 1 - eps() : p
-    p = p == 0 ? eps() : p
+    p = max(p, eps())
+    p = min(1-eps(), p)
     LL = data ? log(p) : log(1 - p)
     # println(" choice ", data, " kappa ", κ, " tau ", τ, " t_ss ", t_ss,
     #     " t_ll ", t_ll, " r_ss ", r_ss, " r_ll ", r_ll, " LL ", LL)

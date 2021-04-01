@@ -20,6 +20,7 @@ function loglike(δ, β, γ, θ, pa, va, pb, vb, data)
     eua,eub = expected_utilities(δ, β, γ, θ, pa, va, pb, vb)
     p = choice_prob(eua, eub, θ)
     p = max(p, eps())
+    p = min(1-eps(), p)
     return logpdf(Bernoulli(p), data)
 end
 

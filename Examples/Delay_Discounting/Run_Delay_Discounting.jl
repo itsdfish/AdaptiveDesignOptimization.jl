@@ -7,12 +7,12 @@ cd(@__DIR__)
 using Pkg
 # activate the project environment
 Pkg.activate("../../")
-using Revise, AdaptiveDesignOptimization, Random, UtilityModels, Distributions
-include("Delay_Discounting.jl")
+using Revise, AdaptiveDesignOptimization, Random, Distributions
+includet("Delay_Discounting.jl")
 #######################################################################################
-#                                  Define Model
+#                               Define Experiment Design
 #######################################################################################
-Random.seed!(12034)
+Random.seed!(120341)
 prior = [Uniform(-5, 5), Uniform(-5, 50)]
 
 model = Model(;prior, loglike)

@@ -3,7 +3,7 @@
 This package is a grid-based approach for performing Bayesian adaptive design optimization. After each observation, the optimizer chooses an experimental design that maximizes mutual information between model parameters and design parameters. In so doing, the optimizer selects designs that minimize the variance in the posterior distribution of model parameters.
 # Example
 
-In this example, we will optimize a decision making experiment for the model called Transfer of Attention Exchange (TAX; Birnbaum, 2008). Additional examples can be found in the folder titled Examples. sds
+In this example, we will optimize a decision making experiment for the model called Transfer of Attention Exchange (TAX; Birnbaum, 2008). Additional examples can be found in the folder titled Examples.
 
 ```julia 
 using AdaptiveDesignOptimization, Random, UtilityModels, Distributions
@@ -73,6 +73,53 @@ data_list = (choice=[true, false],)
 ```
 ## Optimize Exeriment
 
+In the following code blocks, we will run an optimized experiment and a random experiment. The first step is to generate the optimizer with the contructor `Optimizer`. Next, we specify true parameters for generating data from the model and initialize a `DataFrame` to collect the results on each simulated trial. In the experiment loop, data are generated with `simulate`. The data are passed to `update` in order to optimize the experiment for the next trial. Finally, the mean and standard deviation are added to the `DataFrame` for each parameter. A similar process is used to perform the random experiment. 
+
+```julia
+using DataFrames
+true_parms = (δ=-1.0, β=1.0, γ=.7, θ=1.5)
+n_trials = 100
+optimizer = Optimizer(;design_list, parm_list, data_list, model)
+design = optimizer.best_design
+df = DataFrame(design=Symbol[], trial=Int[], mean_δ=Float64[], mean_β=Float64[],
+    mean_γ=Float64[], mean_θ=Float64[], std_δ=Float64[], std_β=Float64[],
+    std_γ=Float64[], std_θ=Float64[])
+new_data = [:optimal, 0, mean_post(optimizer)..., std_post(optimizer)...]
+push!(df, new_data)
+
+for trial in 1:n_trials
+    data = simulate(true_parms..., design...)
+    design = update!(optimizer, data)
+    new_data = [:optimal, trial, mean_post(optimizer)..., std_post(optimizer)...]
+    push!(df, new_data)
+end
+```
+## Random Experiment
+```julia
+randomizer = Optimizer(;design_list, parm_list, data_list, model, design_type=Randomize);
+design = randomizer.best_design
+new_data = [:random, 0, mean_post(randomizer)..., std_post(randomizer)...]
+push!(df, new_data)
+
+for trial in 1:n_trials
+    data = simulate(true_parms..., design...)
+    design = update!(randomizer, data)
+    new_data = [:random, trial, mean_post(randomizer)..., std_post(randomizer)...]
+    push!(df, new_data)
+end
+```
+
+## Results
+
+As expected, in the figure below, the posterior standard deviation of δ is smaller for the optimal experiment compared to the random experiment.
+
+
+```julia
+using StatsPlots
+@df df plot(:trial, :std_δ, xlabel="trial", ylabel="σ of δ", grid=false, group=:design, linewidth=2, ylims=(0,1.5), size=(600,400))
+```
+
+<img src="Examples/Monetary_Gambles/results.png" alt="" width="500" height="300">
 
 # References
 

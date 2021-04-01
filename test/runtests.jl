@@ -111,7 +111,6 @@ end
     @test std_post(randomizer)[1] ≈ std(Beta(α+1,β+2)) atol = 5e-3
 end
 
-
 @safetestset "Dimension Check" begin
     using Test, Distributions, AdaptiveDesignOptimization
 

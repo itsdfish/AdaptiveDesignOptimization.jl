@@ -7,13 +7,12 @@ cd(@__DIR__)
 using Pkg
 # activate the project environment
 Pkg.activate("../../")
-using AdaptiveDesignOptimization, Random, UtilityModels, Distributions
-include("TAX_Model.jl")
+using Revise, AdaptiveDesignOptimization, Random, UtilityModels, Distributions
+includet("TAX_Model.jl")
 Random.seed!(25974)
 #######################################################################################
-#                                  Define Parameters
+#                               Define Experiment Design
 #######################################################################################
-
 # model with default uniform prior
 model = Model(;loglike)
 
