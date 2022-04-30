@@ -1,7 +1,7 @@
 name = "AdaptiveDesignOptimization"
 uuid = "5f210a59-4c6a-4c2f-87d5-5cd98d51789a"
-authors = ["itsdfish <itsdfish@gmail.com> and contributors"]
-version = "0.1.1"
+authors = ["itsdfish]
+version = "0.1.2"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
