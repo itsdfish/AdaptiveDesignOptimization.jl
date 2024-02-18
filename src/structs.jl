@@ -57,13 +57,15 @@ mutable struct Model{F<:Function,P}
 end
 
 function Model(args...; prior=nothing, loglike, kwargs...)
-    return Model(prior, (x...)->loglike(x..., args...; kwargs...))
+    return Model(prior, (x...) -> loglike(x..., args...; kwargs...))
 end
 
 """
     Optimizer(;task, model, grid_design, grid_parms, grid_response)
 
 `Optimizer` constructs a model object for adaptive design optimization
+
+# Fields 
 
 - `model`: a model object
 - `grid_design`:a grid of design parameters 
@@ -74,7 +76,13 @@ end
 - `priors`: a multidimensional array of prior probabilities for parameters
 - `log_post`: a one dimensional array of log posterior probabilities for parameters
 - `entropy`: a two dimensional array of entropy values for parameter and design combinations
-- 
+- `marg_entropy`:
+- `cond_entropy`:
+- `mutual_info`:
+- `best_design`:
+- `parm_names`:
+- `model_state`:
+- `update_state!`:
 """
 mutable struct Optimizer{A,MT,M<:Model,T1,T2,T3,T4,T5,T6,T7,T8,T9,
     T10,T11}

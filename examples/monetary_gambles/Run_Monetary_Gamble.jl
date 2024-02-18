@@ -6,51 +6,47 @@ cd(@__DIR__)
 # load the package manager
 using Pkg
 # activate the project environment
-Pkg.activate("../../")
-using Revise, AdaptiveDesignOptimization, Random, Distributions
-includet("Delay_Discounting.jl")
+Pkg.activate("")
+using Revise
+using AdaptiveDesignOptimization
+using Distributions
+using Random
+using UtilityModels
+includet("TAX_Model.jl")
+Random.seed!(25974)
 #######################################################################################
 #                               Define Experiment Design
 #######################################################################################
-Random.seed!(120341)
-prior = [Uniform(-5, 5), Uniform(-5, 50)]
+# model with default uniform prior
+model = Model(;loglike)
 
-model = Model(;prior, loglike)
-
-parm_list = (κ = range(-5, 0, length=50) .|> x->10^x, 
-   τ = range(0, 5, length=11)[2:end])
-
-# parm_list = (κ = [.1], 
-#    τ = [.2,.5])
-
-design_list = (
-    t_ss = [0.0], 
-    t_ll = [0.43, 0.714, 1, 2, 3,
-        4.3, 6.44, 8.6, 10.8, 12.9,
-        17.2, 21.5, 26, 52, 104,
-        156, 260, 520], 
-    r_ss = 12.5:12.5:787.5,
-    r_ll = [800.0]
+parm_list = (
+    δ = range(-2, 2, length=10),
+    β = range(.5, 1.5, length=10),
+    γ = range(.5, 1.2, length=10),
+    θ = range(.5, 3, length=10)
 )
 
-# design_list = (
-#     t_ss = [0.0], 
-#     t_ll = [5.0, 10.0], 
-#     r_ss = [12.0, 20.0],
-#     r_ll = [80.0]
-# )
+dist = Normal(0,10)
+n_vals = 3
+n_choices = 2
+design_vals = map(x -> random_design(dist, n_vals, n_choices), 1:1000)
+filter!(x -> abs_zscore(x) ≤ .4, design_vals)
+design_names = (:p1,:v1,:p2,:v2)
+design_list = (design_names,design_vals[1:100])
 
 data_list = (choice=[true, false],)
 #######################################################################################
-#                              Simulate Experiment
+#                              Optimize Experiment
 #######################################################################################
 using DataFrames
-true_parms = (κ=.12, τ=1.5)
+true_parms = (δ=-1.0, β=1.0, γ=.7, θ=1.5)
 n_trials = 100
-optimizer = Optimizer(;design_list, parm_list, data_list, model);
+optimizer = Optimizer(;design_list, parm_list, data_list, model)
 design = optimizer.best_design
-df = DataFrame(design=Symbol[], trial=Int[], mean_κ=Float64[], mean_τ=Float64[],
-    std_κ=Float64[], std_τ=Float64[])
+df = DataFrame(design=Symbol[], trial=Int[], mean_δ=Float64[], mean_β=Float64[],
+    mean_γ=Float64[], mean_θ=Float64[], std_δ=Float64[], std_β=Float64[],
+    std_γ=Float64[], std_θ=Float64[])
 new_data = [:optimal, 0, mean_post(optimizer)..., std_post(optimizer)...]
 push!(df, new_data)
 
@@ -78,12 +74,22 @@ end
 #                                 Plot Results
 #######################################################################################
 using StatsPlots
-@df df plot(:trial, :mean_κ, xlabel="trial", ylabel="mean κ", group=:design, grid=false)
-hline!([true_parms.κ], label="true")
+@df df plot(:trial, :mean_δ, xlabel="trial", ylabel="mean δ", group=:design, grid=false)
+hline!([true_parms.δ], label="true")
 
-@df df plot(:trial, :mean_τ, xlabel="trial", ylabel="mean τ", group=:design, grid=false)
-hline!([true_parms.τ], label="true")
+@df df plot(:trial, :mean_β, xlabel="trial", ylabel="mean β", group=:design, grid=false)
+hline!([true_parms.β], label="true")
 
-@df df plot(:trial, :std_κ, xlabel="trial", ylabel="σ of κ", grid=false, group=:design, ylims=(0,.3))
+@df df plot(:trial, :mean_γ, xlabel="trial", ylabel="mean γ", group=:design, grid=false)
+hline!([true_parms.γ], label="true")
 
-@df df plot(:trial, :std_τ, xlabel="trial", ylabel="σ of τ", grid=false, group=:design, ylims=(0,2))
+@df df plot(:trial, :mean_θ, xlabel="trial", ylabel="mean θ", group=:design, grid=false)
+hline!([true_parms.θ], label="true")
+
+@df df plot(:trial, :std_δ, xlabel="trial", ylabel="σ of δ", grid=false, group=:design, ylims=(0,1.5))
+
+@df df plot(:trial, :std_β, xlabel="trial", ylabel="σ of β", grid=false, group=:design, ylims=(0,.5))
+
+@df df plot(:trial, :std_γ, xlabel="trial", ylabel="σ of γ", grid=false, group=:design, ylims=(0,.5))
+
+@df df plot(:trial, :std_θ, xlabel="trial", ylabel="σ of θ", grid=false, group=:design, ylims=(0,.8))

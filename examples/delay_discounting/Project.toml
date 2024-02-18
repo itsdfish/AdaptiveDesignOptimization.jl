@@ -1,0 +1,17 @@
+[deps]
+AdaptiveDesignOptimization = "5f210a59-4c6a-4c2f-87d5-5cd98d51789a"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Pigeons = "0eb8d820-af6a-4919-95ae-11206f830c31"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
+StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
+Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
+
+[compat]
+DataFrames = "1"
+Distributions = "0.25.0"
+Random = "1"
+Revise = "3"
+StatsPlots = "0.15.0"

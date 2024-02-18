@@ -19,8 +19,8 @@ Computes a grid of prior probabilities over model parameters.
 - `parm_grid`: a grid of parameter values
 """
 function prior_probs(prior, parm_grid)
-    dens = [mapreduce((θ,d)->pdf(d, θ), *, g, prior) for g in parm_grid]
-    return dens/sum(dens)
+    dens = [mapreduce((θ,d) -> pdf(d, θ), *, g, prior) for g in parm_grid]
+    return dens / sum(dens)
 end
 
 """
@@ -32,7 +32,7 @@ Computes a grid of uniform prior probabilities over model parameters.
 - `parm_grid`: a grid of parameter values
 """
 function prior_probs(prior::Nothing, parm_grid)
-    return fill(1/length(parm_grid), size(parm_grid))
+    return fill(1 / length(parm_grid), size(parm_grid))
 end
 
 """
@@ -200,11 +200,11 @@ end
 # """
 # function marginal_posterior(optimizer)
 #     @unpack posteriors = optimizer
-#     return map(d->sum(posterior, dims=d), ndims(posterior):-1:1)
+#     return map(d-> sum(posterior, dims=d), ndims(posterior):-1:1)
 # end
 
 function compute_entropy(log_like)
-    return -1*sum(exp.(log_like) .* log_like, dims=3)[:,:]
+    return -1 * sum(exp.(log_like) .* log_like, dims=3)[:,:]
 end
 
 function conditional_entropy(entropy, post)
@@ -223,7 +223,7 @@ function marginal_entropy!(optimizer::Optimizer)
 end
 
 function marginal_entropy(marg_log_like)
-    return -sum(exp.(marg_log_like).*marg_log_like, dims=3)[:]
+    return -sum(exp.(marg_log_like) .* marg_log_like, dims=3)[:]
 end
 
 """
@@ -344,7 +344,7 @@ function to_grid(vals::NamedTuple)
 end
 
 function to_grid(vals)
-    k = [Symbol(string("v",i)) for i in 1:length(vals[1])]
+    k = [Symbol(string("v", i)) for i in 1:length(vals[1])]
     return (k...,),vals
 end
 
@@ -368,12 +368,12 @@ function mean_post(optimizer)
 end
 
 function mean_post(post, parm_grid)
-    return mapreduce((p,v)->p.*v, .+, post, parm_grid)
+    return mapreduce((p,v) -> p .* v, .+, post, parm_grid)
 end
 
 function std_post(post, parm_grid)
     mu = mean_post(post, parm_grid)
-    return mapreduce((p,v)->p.*(v .- mu).^2, .+, post, parm_grid) .|> sqrt
+    return mapreduce((p,v) -> p .* (v .- mu).^2, .+, post, parm_grid) .|> sqrt
 end
 
 function std_post(optimizer)
@@ -415,7 +415,7 @@ end
 # end
 
 # # function update_model_posterior(ps, es)
-# #     map(i->ps[i]./(sum(ps.*(es./es[i]))),1:length(ps))
+# #     map(i-> ps[i]./(sum(ps.*(es./es[i]))),1:length(ps))
 # # end
 
 # using Distributions
