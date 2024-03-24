@@ -1,9 +1,9 @@
-discount(t, κ) = 1/(1 + κ*t)
+discount(t, κ) = 1 / (1 + κ * t)
 
 function prob(κ, τ, t_ss, t_ll, r_ss, r_ll)
     u_ll = r_ll * discount(t_ll, κ)
     u_ss = r_ss * discount(t_ss, κ)
-    return 1/(1 + exp(-τ * (u_ll - u_ss)))
+    return 1 / (1 + exp(-τ * (u_ll - u_ss)))
 end
 
 function loglike(κ, τ, t_ss, t_ll, r_ss, r_ll, data)
