@@ -17,35 +17,35 @@ loglike(δ, β, γ, θ, pa, va, pb, vb, data)
 ```
 """
 function loglike(δ, β, γ, θ, pa, va, pb, vb, data)
-    eua,eub = expected_utilities(δ, β, γ, θ, pa, va, pb, vb)
+    eua, eub = expected_utilities(δ, β, γ, θ, pa, va, pb, vb)
     p = choice_prob(eua, eub, θ)
     p = max(p, eps())
-    p = min(1-eps(), p)
+    p = min(1 - eps(), p)
     return logpdf(Bernoulli(p), data)
 end
 
 function choice_prob(eua, eub, θ)
-    return 1/(1 + exp(-θ*(eua - eub)))
+    return 1 / (1 + exp(-θ * (eua - eub)))
 end
 
 function simulate(δ, β, γ, θ, pa, va, pb, vb)
-    eua,eub = expected_utilities(δ, β, γ, θ, pa, va, pb, vb)
+    eua, eub = expected_utilities(δ, β, γ, θ, pa, va, pb, vb)
     p = choice_prob(eua, eub, θ)
     return rand() ≤ p ? true : false
 end
 
 function expected_utilities(δ, β, γ, θ, pa, va, pb, vb)
-    model = TAX(;γ, δ, β)
-    gambleA = Gamble(;p=pa, v=va)
-    gambleB = Gamble(;p=pb, v=vb)
+    model = TAX(; γ, δ, β)
+    gambleA = Gamble(; p = pa, v = va)
+    gambleB = Gamble(; p = pb, v = vb)
     eua = mean(model, gambleA)
     eub = mean(model, gambleB)
-    return eua,eub
+    return eua, eub
 end
 
 function random_design(outcome_dist, n_vals, n_choices)
     design = Vector{Vector{Float64}}()
-    for _ in 1:n_choices
+    for _ = 1:n_choices
         p = rand(Dirichlet(n_vals, 1))
         push!(design, p)
         v = rand(outcome_dist, n_vals)
@@ -56,16 +56,15 @@ end
 
 function abs_zscore(x)
     model = ExpectedUtility(1)
-    gambleA = Gamble(;p=x[1], v=x[2])
-    gambleB = Gamble(;p=x[3], v=x[4])
+    gambleA = Gamble(; p = x[1], v = x[2])
+    gambleB = Gamble(; p = x[3], v = x[4])
     μa = mean(model, gambleA)
     μb = mean(model, gambleB)
     σa = var(model, gambleA)
     σb = var(model, gambleB)
-    return abs((μa - μb)/sqrt(σa + σb))
+    return abs((μa - μb) / sqrt(σa + σb))
 end
 
-    
 # using Revise, Turing, Random, MCMCChains
 
 # # Set the true probability of heads in a coin.
@@ -98,7 +97,6 @@ end
 
 # # Start sampling.
 # chain = sample(coinflip(data), HMC(ϵ, τ), iterations)
-
 
 # lpfun = function f(chain::Chains, dist, chains) # function to compute the logpdf values
 #     niter, nparams, nchains = size(chain)

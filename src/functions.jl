@@ -19,7 +19,7 @@ Computes a grid of prior probabilities over model parameters.
 - `parm_grid`: a grid of parameter values
 """
 function prior_probs(prior, parm_grid)
-    dens = [mapreduce((θ,d) -> pdf(d, θ), *, g, prior) for g in parm_grid]
+    dens = [mapreduce((θ, d) -> pdf(d, θ), *, g, prior) for g in parm_grid]
     return dens / sum(dens)
 end
 
@@ -48,7 +48,14 @@ dimension is the design parameters, and the third dimension is the data values.
 - `model_type`: model type can be `Static` or `Dynamic`
 - `model_state`: model state variables that are updated for `Dynamic` models
 """
-function loglikelihood(model::Model, design_grid, parm_grid, data_grid, model_type, model_state)
+function loglikelihood(
+    model::Model,
+    design_grid,
+    parm_grid,
+    data_grid,
+    model_type,
+    model_state
+)
     return loglikelihood(model.loglike, design_grid, parm_grid, data_grid)
 end
 
@@ -65,7 +72,14 @@ dimension is the design parameters, and the third dimension is the data values.
 - `model_type`: model type can be `Static` or `Dynamic`
 - `model_state`: model state variables that are updated for `Dynamic` models
 """
-function loglikelihood(model::Model, design_grid, parm_grid, data_grid, model_type::Dyn, model_state)
+function loglikelihood(
+    model::Model,
+    design_grid,
+    parm_grid,
+    data_grid,
+    model_type::Dyn,
+    model_state
+)
     return loglikelihood(model.loglike, design_grid, parm_grid, data_grid, model_state)
 end
 
@@ -85,9 +99,9 @@ dimension is the design parameters, and the third dimension is the data values.
 function loglikelihood(loglike, design_grid, parm_grid, data_grid)
     LLs = zeros(length(parm_grid), length(design_grid), length(data_grid))
     for (d, data) in enumerate(data_grid)
-        for (k,design) in enumerate(design_grid)
-            for (p,parms) in enumerate(parm_grid)
-                LLs[p,k,d] = loglike(parms..., design..., data...) 
+        for (k, design) in enumerate(design_grid)
+            for (p, parms) in enumerate(parm_grid)
+                LLs[p, k, d] = loglike(parms..., design..., data...)
             end
         end
     end
@@ -111,11 +125,11 @@ function loglikelihood(loglike, design_grid, parm_grid, data_grid, model_state)
     LLs = zeros(length(parm_grid), length(design_grid), length(data_grid))
     i = 0
     for (d, data) in enumerate(data_grid)
-        for (k,design) in enumerate(design_grid)
-            for (p,parms) in enumerate(parm_grid)
+        for (k, design) in enumerate(design_grid)
+            for (p, parms) in enumerate(parm_grid)
                 i += 1
                 state = deepcopy(model_state[i])
-                LLs[p,k,d] = loglike(parms..., design..., data..., state) 
+                LLs[p, k, d] = loglike(parms..., design..., data..., state)
             end
         end
     end
@@ -131,9 +145,16 @@ the second dimension is the design parameters, and the third dimension is the da
 - `optimizer`: an optimizer object
 
 """
-function loglikelihood!(optimizer) 
+function loglikelihood!(optimizer)
     @unpack model, log_like, design_grid, parm_grid, data_grid, model_state = optimizer
-    return loglikelihood!(model.loglike, log_like, design_grid, parm_grid, data_grid, model_state)
+    return loglikelihood!(
+        model.loglike,
+        log_like,
+        design_grid,
+        parm_grid,
+        data_grid,
+        model_state
+    )
 end
 
 """
@@ -152,11 +173,11 @@ dimension is the design parameters, and the third dimension is the data values.
 function loglikelihood!(loglike, log_like, design_grid, parm_grid, data_grid, model_state)
     i = 0
     for (d, data) in enumerate(data_grid)
-        for (k,design) in enumerate(design_grid)
-            for (p,parms) in enumerate(parm_grid)
+        for (k, design) in enumerate(design_grid)
+            for (p, parms) in enumerate(parm_grid)
                 i += 1
                 state = deepcopy(model_state[i])
-                log_like[p,k,d] = loglike(parms..., design..., data..., state) 
+                log_like[p, k, d] = loglike(parms..., design..., data..., state)
             end
         end
     end
@@ -172,7 +193,7 @@ the second dimension is the design parameters, and the third dimension is the da
 - `optimizer`: an optimizer object
 """
 function marginal_log_like!(optimizer)
-    @unpack marg_log_like,log_like,log_post = optimizer
+    @unpack marg_log_like, log_like, log_post = optimizer
     marg_log_like .= marginal_log_like(log_post, log_like)
 end
 
@@ -187,7 +208,7 @@ the second dimension is the design parameters, and the third dimension is the da
 the second dimension corresponds to the design parameters, and the third dimension corresponds to the data values
 """
 function marginal_log_like(log_post, log_like)
-    return logsumexp(log_post .+ log_like, dims=1)
+    return logsumexp(log_post .+ log_like, dims = 1)
 end
 
 # """
@@ -204,26 +225,26 @@ end
 # end
 
 function compute_entropy(log_like)
-    return -1 * sum(exp.(log_like) .* log_like, dims=3)[:,:]
+    return -1 * sum(exp.(log_like) .* log_like, dims = 3)[:, :]
 end
 
 function conditional_entropy(entropy, post)
-    return entropy'*post
+    return entropy' * post
 end
 
 function conditional_entropy!(optimizer)
-    @unpack cond_entropy, entropy,log_post = optimizer
+    @unpack cond_entropy, entropy, log_post = optimizer
     post = exp.(log_post)
     cond_entropy .= conditional_entropy(entropy, post)
 end
 
 function marginal_entropy!(optimizer::Optimizer)
-    @unpack marg_entropy,marg_log_like = optimizer
+    @unpack marg_entropy, marg_log_like = optimizer
     marg_entropy .= marginal_entropy(marg_log_like)
 end
 
 function marginal_entropy(marg_log_like)
-    return -sum(exp.(marg_log_like) .* marg_log_like, dims=3)[:]
+    return -sum(exp.(marg_log_like) .* marg_log_like, dims = 3)[:]
 end
 
 """
@@ -246,45 +267,45 @@ Computes a vector of the mutual information values where each element correspond
 - `optimizer`: an optimizer object
 """
 function mutual_information!(optimizer)
-    @unpack mutual_info,marg_entropy,cond_entropy = optimizer
+    @unpack mutual_info, marg_entropy, cond_entropy = optimizer
     mutual_info .= mutual_information(marg_entropy, cond_entropy)
     return nothing
 end
 
 function get_best_design(optimizer)
-    @unpack best_design,design_names = optimizer
+    @unpack best_design, design_names = optimizer
     return NamedTuple{design_names}(best_design)
 end
 
 function find_best_design!(optimizer)
-    @unpack design_names,mutual_info,design_grid = optimizer
+    @unpack design_names, mutual_info, design_grid = optimizer
     best_design = find_best_design(mutual_info, design_grid, design_names)
     optimizer.best_design = best_design
     return best_design
 end
 
 function find_best_design(mutual_info, design_grid, design_names)
-    _,best = findmax(mutual_info)
+    _, best = findmax(mutual_info)
     best_design = design_grid[best]
     return best_design
 end
 
-function find_best_design!(optimizer::Optimizer{A}) where {A<:Rand}
-    @unpack design_grid,design_names = optimizer
+function find_best_design!(optimizer::Optimizer{A}) where {A <: Rand}
+    @unpack design_grid, design_names = optimizer
     best_design = rand(design_grid)
     optimizer.best_design = best_design
     return best_design
 end
 
 function update_posterior!(optimizer, data)
-    @unpack log_post,design_grid,data_grid,log_like,best_design = optimizer
+    @unpack log_post, design_grid, data_grid, log_like, best_design = optimizer
     dn = find_index(design_grid, best_design)
     for datum in data
         da = find_index(data_grid, (datum,))
-        log_post .+= log_like[:,dn,da]
+        log_post .+= log_like[:, dn, da]
     end
     log_post .-= logsumexp(log_post)
-    return nothing 
+    return nothing
 end
 
 function update!(optimizer, data)
@@ -297,7 +318,7 @@ function update!(optimizer, data)
     return best_design
 end
 
-function update!(optimizer::Optimizer{A,MT}, data, args...; kwargs...) where {A,MT<:Dyn}
+function update!(optimizer::Optimizer{A, MT}, data, args...; kwargs...) where {A, MT <: Dyn}
     update_posterior!(optimizer, data)
     update_states!(optimizer, data, args...; kwargs...)
     loglikelihood!(optimizer)
@@ -309,7 +330,12 @@ function update!(optimizer::Optimizer{A,MT}, data, args...; kwargs...) where {A,
     return best_design
 end
 
-function update!(optimizer::Optimizer{A,MT}, data, args...; kwargs...) where {A<:Rand,MT<:Dyn}
+function update!(
+    optimizer::Optimizer{A, MT},
+    data,
+    args...;
+    kwargs...
+) where {A <: Rand, MT <: Dyn}
     update_posterior!(optimizer, data)
     update_states!(optimizer, data, args...; kwargs...)
     loglikelihood!(optimizer)
@@ -317,7 +343,7 @@ function update!(optimizer::Optimizer{A,MT}, data, args...; kwargs...) where {A<
     return best_design
 end
 
-function update!(optimizer::Optimizer{A}, data) where {A<:Rand}
+function update!(optimizer::Optimizer{A}, data) where {A <: Rand}
     update_posterior!(optimizer, data)
     best_design = find_best_design!(optimizer)
     return best_design
@@ -330,7 +356,15 @@ function update_states!(optimizer, obs_data, args...; kwargs...)
         for design in design_grid
             for parms in parm_grid
                 i += 1
-                update_state!(model_state[i], parms, design, data, obs_data, args...; kwargs...)
+                update_state!(
+                    model_state[i],
+                    parms,
+                    design,
+                    data,
+                    obs_data,
+                    args...;
+                    kwargs...
+                )
             end
         end
     end
@@ -340,44 +374,44 @@ end
 function to_grid(vals::NamedTuple)
     k = keys(vals)
     v = product(vals...) |> collect
-    return k,v
+    return k, v
 end
 
 function to_grid(vals)
-    k = [Symbol(string("v", i)) for i in 1:length(vals[1])]
-    return (k...,),vals
+    k = [Symbol(string("v", i)) for i = 1:length(vals[1])]
+    return (k...,), vals
 end
 
 to_grid(vals::Tuple) = vals
 
 function find_index(grid, val)
     i = 0
-    for g in grid 
+    for g in grid
         i += 1
-        if g == val 
+        if g == val
             return i
         end
-    end 
+    end
     return i
 end
 
 function mean_post(optimizer)
-    @unpack log_post,parm_grid = optimizer
+    @unpack log_post, parm_grid = optimizer
     post = exp.(log_post)
     return mean_post(post, parm_grid)
 end
 
 function mean_post(post, parm_grid)
-    return mapreduce((p,v) -> p .* v, .+, post, parm_grid)
+    return mapreduce((p, v) -> p .* v, .+, post, parm_grid)
 end
 
 function std_post(post, parm_grid)
     mu = mean_post(post, parm_grid)
-    return mapreduce((p,v) -> p .* (v .- mu).^2, .+, post, parm_grid) .|> sqrt
+    return mapreduce((p, v) -> p .* (v .- mu) .^ 2, .+, post, parm_grid) .|> sqrt
 end
 
 function std_post(optimizer)
-    @unpack log_post,parm_grid = optimizer
+    @unpack log_post, parm_grid = optimizer
     post = exp.(log_post)
     return std_post(post, parm_grid)
 end
