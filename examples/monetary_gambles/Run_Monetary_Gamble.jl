@@ -13,7 +13,7 @@ using Distributions
 using Random
 using UtilityModels
 includet("TAX_Model.jl")
-Random.seed!(25974)
+Random.seed!(674)
 #######################################################################################
 #                               Define Experiment Design
 #######################################################################################

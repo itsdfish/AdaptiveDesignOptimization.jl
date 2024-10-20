@@ -119,7 +119,7 @@ using StatsPlots
 @df df plot(:trial, :std_δ, xlabel="trial", ylabel="σ of δ", grid=false, group=:design, linewidth=2, ylims=(0,1.5), size=(600,400))
 ```
 
-<img src="Examples/Monetary_Gambles/results.png" alt="" width="500" height="300">
+<img src="examples/Monetary_Gambles/results.png" alt="" width="500" height="300">
 
 # References
 
