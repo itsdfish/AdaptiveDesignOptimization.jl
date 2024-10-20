@@ -15,8 +15,8 @@ makedocs(
     ),
     modules = [
         AdaptiveDesignOptimization
-        # Base.get_extension(AdaptiveDesignOptimization, :TuringExt),
-        # Base.get_extension(AdaptiveDesignOptimization, :NamedArraysExt)
+    # Base.get_extension(AdaptiveDesignOptimization, :TuringExt),
+    # Base.get_extension(AdaptiveDesignOptimization, :NamedArraysExt)
     ],
     pages = [
         "Home" => "index.md"
