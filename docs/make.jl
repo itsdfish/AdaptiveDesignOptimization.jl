@@ -14,12 +14,12 @@ makedocs(
         collapselevel = 1
     ),
     modules = [
-        AdaptiveDesignOptimization,
+        AdaptiveDesignOptimization
         # Base.get_extension(AdaptiveDesignOptimization, :TuringExt),
         # Base.get_extension(AdaptiveDesignOptimization, :NamedArraysExt)
     ],
     pages = [
-        "Home" => "index.md",
+        "Home" => "index.md"
     ]
 )
 
