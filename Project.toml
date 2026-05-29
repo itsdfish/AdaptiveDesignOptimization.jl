@@ -1,7 +1,7 @@
 name = "AdaptiveDesignOptimization"
 uuid = "5f210a59-4c6a-4c2f-87d5-5cd98d51789a"
-authors = ["itsdfish"]
 version = "0.1.4"
+authors = ["itsdfish"]
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -14,7 +14,7 @@ StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 Distributions = "v0.24.13, 0.25"
 Parameters = "v0.12.2"
 SafeTestsets = "v0.0.1, 0.1"
-StatsFuns = "v0.9.6, 1"
+StatsFuns = "v0.9.6, 1, 2"
 julia = "1"
 
 [extras]
